@@ -1,0 +1,636 @@
+{
+  "name": "Digital Attendance(faceReg)",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {
+          "download": true
+        }
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -464,
+        -96
+      ],
+      "id": "e51e492e-f8b2-4448-af1b-592b3bc57ce5",
+      "name": "To add the worker",
+      "webhookId": "0ed2b82f-bcfa-4905-96f8-5b28e85115ea",
+      "credentials": {
+        "telegramApi": {
+          "id": "uoTpYGUtMXjpBCcG",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api-us.faceplusplus.com/facepp/v3/detect",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "rDDaPY2sw5neXGxrIpEGsIHgvvc25zs8"
+            },
+            {
+              "name": "api_secret",
+              "value": "RMpi4x0u0M0pZBbqAcklkR1mjRXfbyu-"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "image_file",
+              "inputDataFieldName": "=data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        48,
+        -272
+      ],
+      "id": "4b52b153-716d-4b8b-b6d5-f2001e14f0e8",
+      "name": "HTTP Request",
+      "retryOnFail": false,
+      "waitBetweenTries": 5000
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api-us.faceplusplus.com/facepp/v3/faceset/create",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "rDDaPY2sw5neXGxrIpEGsIHgvvc25zs8"
+            },
+            {
+              "name": "api_secret",
+              "value": "RMpi4x0u0M0pZBbqAcklkR1mjRXfbyu-"
+            },
+            {
+              "name": "outer_id",
+              "value": "workers_attendance"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        272,
+        -400
+      ],
+      "id": "f0a873b0-ed35-45bd-9a5a-e235d9c2883d",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api-us.faceplusplus.com/facepp/v3/faceset/addface",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "rDDaPY2sw5neXGxrIpEGsIHgvvc25zs8"
+            },
+            {
+              "name": "api_secret",
+              "value": "RMpi4x0u0M0pZBbqAcklkR1mjRXfbyu-"
+            },
+            {
+              "name": "face_tokens",
+              "value": "={{ $('HTTP Request').item.json.faces[0].face_token }}"
+            },
+            {
+              "name": "outer_id",
+              "value": "=workers_attendance"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        576,
+        -272
+      ],
+      "id": "d5c08d64-3c9a-413a-a3d2-6d87556f586b",
+      "name": "HTTP Request2"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api-us.faceplusplus.com/facepp/v3/face/setuserid",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "rDDaPY2sw5neXGxrIpEGsIHgvvc25zs8"
+            },
+            {
+              "name": "api_secret",
+              "value": "RMpi4x0u0M0pZBbqAcklkR1mjRXfbyu-"
+            },
+            {
+              "name": "face_token",
+              "value": "={{ $json.face_token }}"
+            },
+            {
+              "name": "user_id",
+              "value": "={{ $json.worker_id }}"
+            },
+            {
+              "name": "Name",
+              "value": "={{ $json.Name }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        608,
+        32
+      ],
+      "id": "fcb5e687-7423-44b5-b4e6-64c90c8a1a66",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('To add the worker').item.json.message.chat.id }}",
+        "text": "Enter the Name of the Worker",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        992,
+        -272
+      ],
+      "id": "0a079ee9-5a5f-4a44-9812-580a3138cb06",
+      "name": "Send a text message",
+      "webhookId": "8676a6e6-7d8a-4e66-afcf-bf325537e021",
+      "credentials": {
+        "telegramApi": {
+          "id": "uoTpYGUtMXjpBCcG",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.photo[3].file_id }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    },
+                    "id": "47f5484e-71c8-4802-a5c8-f10067b3df0a"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 2
+                },
+                "conditions": [
+                  {
+                    "id": "65ea36f9-fb4a-4f3e-97f1-d4a28b271e7d",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.3,
+      "position": [
+        -224,
+        -96
+      ],
+      "id": "acc7effe-3def-4ed8-9373-df1aa1acd77f",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1p5htgiqdnDlvpeiIvNkP4_mgh-Jf6S39OAA09LtogU8",
+          "mode": "list",
+          "cachedResultName": "Worker_data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p5htgiqdnDlvpeiIvNkP4_mgh-Jf6S39OAA09LtogU8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p5htgiqdnDlvpeiIvNkP4_mgh-Jf6S39OAA09LtogU8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "waiting",
+            "face_token": "={{ $('HTTP Request').item.json.faces[0].face_token }}",
+            "worker_id": "=worker_{{ $now.toMillis() }}",
+            "admin_id": "={{ $('To add the worker').item.json.message.chat.id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "face_token",
+              "displayName": "face_token",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "admin_id",
+              "displayName": "admin_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "worker_id",
+              "displayName": "worker_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        800,
+        -272
+      ],
+      "id": "3851f5f3-5750-4bf0-8d63-b5c77a5c5e0f",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RF3i0M4uvir532vL",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1p5htgiqdnDlvpeiIvNkP4_mgh-Jf6S39OAA09LtogU8",
+          "mode": "list",
+          "cachedResultName": "Worker_data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p5htgiqdnDlvpeiIvNkP4_mgh-Jf6S39OAA09LtogU8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p5htgiqdnDlvpeiIvNkP4_mgh-Jf6S39OAA09LtogU8/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "admin_id",
+              "lookupValue": "={{ $json.message.chat.id }}"
+            },
+            {
+              "lookupColumn": "Name",
+              "lookupValue": "waiting"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        80,
+        32
+      ],
+      "id": "0f4a633c-7c4a-40f5-80c0-153b70ccee34",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RF3i0M4uvir532vL",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1p5htgiqdnDlvpeiIvNkP4_mgh-Jf6S39OAA09LtogU8",
+          "mode": "list",
+          "cachedResultName": "Worker_data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p5htgiqdnDlvpeiIvNkP4_mgh-Jf6S39OAA09LtogU8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p5htgiqdnDlvpeiIvNkP4_mgh-Jf6S39OAA09LtogU8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "face_token": "={{ $json.face_token }}",
+            "Name": "={{ $('To add the worker').item.json.message.text }}",
+            "worker_id": "={{ $json.worker_id }}",
+            "admin_id": "={{ $json.admin_id }}"
+          },
+          "matchingColumns": [
+            "worker_id"
+          ],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "face_token",
+              "displayName": "face_token",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "admin_id",
+              "displayName": "admin_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "worker_id",
+              "displayName": "worker_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        336,
+        32
+      ],
+      "id": "111b3d99-08c5-4dfa-9681-99b2ee0c45de",
+      "name": "Update row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RF3i0M4uvir532vL",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('To add the worker').item.json.message.chat.id }}",
+        "text": "=Hi {{ $('To add the worker').item.json.message.chat.first_name }} , You have successfully registered!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        848,
+        32
+      ],
+      "id": "59d70d66-fe09-4faf-b971-56849c6c0bbf",
+      "name": "Send a text message1",
+      "webhookId": "82d2315b-d001-495f-b308-674659b4fd7a",
+      "credentials": {
+        "telegramApi": {
+          "id": "uoTpYGUtMXjpBCcG",
+          "name": "Telegram account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "To add the worker": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        []
+      ]
+    },
+    "HTTP Request2": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "bd243708-ede9-40cc-9e71-fc462045afe7",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "918326bd65edfcf039ab6ed0593c1e2f72db2d3947d249ff7f8de3045a340b6c"
+  },
+  "id": "0zR84yn1tI7yVkrN",
+  "tags": []
+}
