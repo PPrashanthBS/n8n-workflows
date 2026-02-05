@@ -1,0 +1,304 @@
+{
+  "name": "PDF Extracter",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1RttWx9nlsgE9P8RLNIbc4TeHoVuFdCpV",
+          "mode": "list",
+          "cachedResultName": "n8n_testing",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1RttWx9nlsgE9P8RLNIbc4TeHoVuFdCpV"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        -224,
+        0
+      ],
+      "id": "be301b08-0e78-4bcb-939a-2cd6fff89ae9",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Us40Mkqi3oa7R38h",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=Analyze the attached PDF file. Extract the Invoice Number and the Grand Total amount. Use the provided Structured Output Parser to format your response.\n\nPDF content : \n\n{{ $json.text }}",
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "You are a precise Document Data Extraction Specialist. Your sole task is to extract information from the attached PDF invoice.\n\nOperational Rules:\n\nZero Hallucination: Only extract data that is visually present in the document. Do not invent placeholder data like 'INV-001' or '$8,020.00' if they are not in the file.\n\nFlexible Label Recognition: Look for common invoice variations. The 'Invoice Number' might be labeled as 'Bill ID', 'Reference', 'Invoice #', or 'Doc No'. The 'Total' is typically the final, largest amount at the bottom of the document.\n\nRaw Data Extraction: Extract the total exactly as written (including currency symbols like ₹, $, or €).\n\nFailure Protocol: If a field is missing, return 'NOT_FOUND' for that specific value.\n\nOutput Format: You MUST return the data strictly in the JSON format defined by the connected Output Parser."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        512,
+        16
+      ],
+      "id": "12c7c39e-1336-404b-aac5-97046364b3f0",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "operation": "download",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.id }}",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        0,
+        -96
+      ],
+      "id": "dd298e32-5b2c-45a9-80e8-901b381028a6",
+      "name": "Download file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "Us40Mkqi3oa7R38h",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"invoice-Number\": \"INV-2026-001\",\n  \"total\": \"₹20,650.00\"\n}",
+        "autoFix": true
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        176
+      ],
+      "id": "5a21b37e-63ef-4118-9ed8-a0853dd5f4c2",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        752,
+        336
+      ],
+      "id": "14e94a6a-1b40-4861-b658-91b1ed2e7910",
+      "name": "Google Gemini Chat Model1",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ayaYPNfYuQouewTj",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        320,
+        352
+      ],
+      "id": "755fae4a-9d7e-47da-953a-9d6060c8d402",
+      "name": "Google Gemini Chat Model2",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ayaYPNfYuQouewTj",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1,
+      "position": [
+        240,
+        -96
+      ],
+      "id": "c893b1e1-55ed-4896-9db5-287a424aec77",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1xk8O4rLHpx3hAafx7d-In5fkNr3W5RP-i8OLtT6WEX8",
+          "mode": "list",
+          "cachedResultName": "Invoices",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xk8O4rLHpx3hAafx7d-In5fkNr3W5RP-i8OLtT6WEX8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xk8O4rLHpx3hAafx7d-In5fkNr3W5RP-i8OLtT6WEX8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Invoice-Number": "={{ $json.output['invoice-Number'] }}",
+            "Total": "={{ $json.output.total }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Invoice-Number",
+              "displayName": "Invoice-Number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Total",
+              "displayName": "Total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        928,
+        -48
+      ],
+      "id": "1424132d-3cf2-42a8-85c1-f8360dc56cb0",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RF3i0M4uvir532vL",
+          "name": "Google Sheets account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Download file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download file": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structured Output Parser",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model2": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "4e8897bd-1211-42c1-84da-187b061ef329",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "918326bd65edfcf039ab6ed0593c1e2f72db2d3947d249ff7f8de3045a340b6c"
+  },
+  "id": "Tik14nNXqaeWB8kw",
+  "tags": []
+}

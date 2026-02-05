@@ -1,0 +1,350 @@
+{
+  "name": "Automated Customer Support",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {}
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -480,
+        -16
+      ],
+      "id": "98d8e6ab-f7e6-4d50-8ce9-7a433c2e2e31",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I3XSBpA5UEE3Y2Cn",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a highly efficient Executive Assistant specialized in email management. Your goal is to categorize incoming emails and draft professional, concise replies.\n\nInput Data:\n\nSubject: {{ $json.Subject }}\n\nContent: {{ $json.snippet }}\n\nInstructions:\n\nAnalyze the Intent: Determine the purpose of the email.\n\nAssign a Label: Choose the most appropriate label from this list: [question, urgent]. If the email is realted to enquiring the order status mark it with question label.\nIf the matter is anything realted to refund mark it as urgent, even if their asking about the refund, where u need to draft the message for the owner, which later will be sent through telegram.\nAlso make sure to use lable tool to get the label id.\n\nDraft a Response: Write a polite and professional reply, Take data from the google sheet taht is attached. Keep it under 3 sentences unless more detail is absolutely necessary. Use a friendly yet professional tone. Make sure to give response in HTML format so that it is easy to read for the custome.In case of urgent don't use HTML format, as later we will be sending thr message through telegram.",
+        "hasOutputParser": true,
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2.2,
+      "position": [
+        -144,
+        -16
+      ],
+      "id": "bb5198ac-c62b-4020-99b9-42019f1b869d",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        288
+      ],
+      "id": "3de5d41e-b4a7-4f4d-9c5a-cc62057af7f7",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ayaYPNfYuQouewTj",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"label\": \"Insert Label Here\",\n  \"label_id\": \"1232323232\",\n  \"reasoning\": \"Brief explanation of why this label was chosen\",\n  \"suggested_reply\": \"Insert the drafted email response here\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        256,
+        288
+      ],
+      "id": "1925c6db-3bc6-4c96-9ba8-3eba08472bb7",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "addLabels",
+        "messageId": "={{ $('Gmail Trigger').item.json.id }}",
+        "labelIds": "={{ $json.output.label_id }}"
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        176,
+        -16
+      ],
+      "id": "2862c56e-ceef-4d3a-8db8-5bf9efa76dca",
+      "name": "Add label to message",
+      "webhookId": "ce2ca4b2-7b32-45b1-b14c-2b68dbe450f1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I3XSBpA5UEE3Y2Cn",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "label",
+        "returnAll": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Return_All', ``, 'boolean') }}"
+      },
+      "type": "n8n-nodes-base.gmailTool",
+      "typeVersion": 2.1,
+      "position": [
+        -96,
+        288
+      ],
+      "id": "8406cb8b-ad95-4efe-b0ee-7bbf146df10a",
+      "name": "Get many labels in Gmail",
+      "webhookId": "1d2d3e45-2c6e-4de0-ba2e-336461eb4d98",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I3XSBpA5UEE3Y2Cn",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1kmXlZmMZr6wTnkjiGM9Zd4HFnlezAbsqePDcA1kTymE",
+          "mode": "list",
+          "cachedResultName": "data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1kmXlZmMZr6wTnkjiGM9Zd4HFnlezAbsqePDcA1kTymE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1kmXlZmMZr6wTnkjiGM9Zd4HFnlezAbsqePDcA1kTymE/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        96,
+        288
+      ],
+      "id": "aec94a31-5309-4c7b-876d-f4f6eb30879c",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RF3i0M4uvir532vL",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Gmail Trigger').item.json.From }}",
+        "subject": "Thank you Reaching out, here is what you looking for!",
+        "message": "={{ $('AI Agent').item.json.output.suggested_reply }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        640,
+        80
+      ],
+      "id": "afdce114-fc9e-4f8b-ba52-e87e4e563604",
+      "name": "Send a message",
+      "webhookId": "99f5cb13-956e-48e4-8529-316f1617bc39",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "I3XSBpA5UEE3Y2Cn",
+          "name": "Gmail account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "cc2d3345-97c0-4a97-9081-16800600700e",
+              "leftValue": "={{ $('AI Agent').item.json.output.label }}",
+              "rightValue": "urgent",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        -96
+      ],
+      "id": "e9e05685-89f5-451f-a6b7-0d74fd0a5a25",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "=7112310989",
+        "text": "={{ $('AI Agent').item.json.output.suggested_reply }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        624,
+        -192
+      ],
+      "id": "122449fa-a52f-4c6c-9ab6-412570324f53",
+      "name": "Send a text message",
+      "webhookId": "5b947481-61ca-41e9-92bd-1d654a5c02e3",
+      "credentials": {
+        "telegramApi": {
+          "id": "uoTpYGUtMXjpBCcG",
+          "name": "Telegram account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Add label to message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get many labels in Gmail": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add label to message": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f219f362-1005-4626-b36e-5ef44c452bc1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "918326bd65edfcf039ab6ed0593c1e2f72db2d3947d249ff7f8de3045a340b6c"
+  },
+  "id": "z6hGkctkSPJydj3F",
+  "tags": []
+}

@@ -1,0 +1,380 @@
+{
+  "name": "AI-OCR System",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -400,
+        -80
+      ],
+      "id": "99dabd02-9e15-433b-b1cb-559a42769919",
+      "name": "Telegram Trigger",
+      "webhookId": "9b565d36-6fbc-48c5-97b8-93e0fcff450a",
+      "credentials": {
+        "telegramApi": {
+          "id": "uoTpYGUtMXjpBCcG",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "image",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "text": "=Analyze this Aadhar card image. Return ONLY a JSON object. No conversational text.\n\nRequired JSON structure: { \"name\": \"string\", \"aadhar_number\": \"string\", \"dob\": \"string\", \"is_clear\": boolean }",
+        "inputType": "binary",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        48,
+        -208
+      ],
+      "id": "3d87cdf6-562c-47ab-962d-9a714ff89632",
+      "name": "Analyze an image",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ayaYPNfYuQouewTj",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.photo[3].file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        -176,
+        -80
+      ],
+      "id": "b72382f0-98c0-4a5d-b266-2c5fd8e47166",
+      "name": "Get a file",
+      "webhookId": "b2426133-93f9-4fcc-a1c2-04ba3b6bfb07",
+      "credentials": {
+        "telegramApi": {
+          "id": "uoTpYGUtMXjpBCcG",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Get the text from the Gemini output\nconst responseText = $input.first().json.content.parts[0].text;\n\ntry {\n  // This regex finds the first '{' and last '}' to extract just the JSON part\n  const jsonMatch = responseText.match(/\\{[\\s\\S]*\\}/);\n  \n  if (jsonMatch) {\n    return JSON.parse(jsonMatch[0]);\n  } else {\n    return { error: \"No JSON found\", raw: responseText };\n  }\n} catch (e) {\n  return { error: \"Parsing failed\", raw: responseText };\n}"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        -208
+      ],
+      "id": "714fe3e0-f423-4699-825d-60c509f1ce42",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1n-WSzfjhxTpkEkEn07uyheXDQeo754pXl3fRHutX5QU",
+          "mode": "list",
+          "cachedResultName": "AI-ocr",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1n-WSzfjhxTpkEkEn07uyheXDQeo754pXl3fRHutX5QU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1n-WSzfjhxTpkEkEn07uyheXDQeo754pXl3fRHutX5QU/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Code in JavaScript').item.json.name }}",
+            "aadhar_number": "={{ $('Code in JavaScript').item.json.aadhar_number }}",
+            "dob": "={{ $('Code in JavaScript').item.json.dob }}",
+            "is_clear": "={{ $('Code in JavaScript').item.json.is_clear }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "aadhar_number",
+              "displayName": "aadhar_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "dob",
+              "displayName": "dob",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "is_clear",
+              "displayName": "is_clear",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        784,
+        -240
+      ],
+      "id": "7f7246a8-477e-4de2-a99b-220461f07cdb",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RF3i0M4uvir532vL",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "The image which was send is not clear, please resend the image",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        672,
+        48
+      ],
+      "id": "ebfb1289-2f43-4ec5-98a1-c83646ae9bdf",
+      "name": "Send a text message",
+      "webhookId": "4d445039-0539-47b0-8348-e6d10ee529e1",
+      "credentials": {
+        "telegramApi": {
+          "id": "uoTpYGUtMXjpBCcG",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "Image successfully sent. Thank you.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        976,
+        -240
+      ],
+      "id": "4217ebc2-67bc-4369-bbff-102f5ee07c85",
+      "name": "Send a text message1",
+      "webhookId": "f7cb2aca-e616-4afe-b9a2-e82fa088b7cd",
+      "credentials": {
+        "telegramApi": {
+          "id": "uoTpYGUtMXjpBCcG",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "0a01cff3-87d6-47c7-a6d5-6d6dc7ca71ce",
+              "leftValue": "={{ $json.name }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "062bfd59-0b4d-48ce-bbe9-ff6b6e8feaa4",
+              "leftValue": "={{ $json.aadhar_number }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "3c0bae4a-b125-4dff-9d79-13e70e3c4a98",
+              "leftValue": "={{ $json.dob }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "76e0fb3b-001d-4d3d-ae88-9331604a965d",
+              "leftValue": "={{ $json.is_clear }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        480,
+        -128
+      ],
+      "id": "35235357-4379-4574-965f-396498386038",
+      "name": "If1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "Analyze an image",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analyze an image": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "4fb117f8-f57e-45bc-a272-6e30a15bd9b8",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "918326bd65edfcf039ab6ed0593c1e2f72db2d3947d249ff7f8de3045a340b6c"
+  },
+  "id": "ceByFb25V2P5OWdI3sfpG",
+  "tags": []
+}

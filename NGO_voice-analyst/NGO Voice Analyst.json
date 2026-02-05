@@ -1,0 +1,136 @@
+{
+  "name": "NGO Voice Analyst",
+  "nodes": [
+    {
+      "parameters": {
+        "resource": "audio",
+        "operation": "analyze",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "text": "Listen to this audio. Provide a summary of the resident's request in valid JSON format only. Do not include markdown code blocks like ```json. Output format: {\"summary\": \"text\", \"category\": \"text\", \"urgency\": 1-5}",
+        "inputType": "binary",
+        "binaryPropertyName": "audio",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        272,
+        -64
+      ],
+      "id": "867bb9ba-8536-4875-803a-7b935cc3cdcb",
+      "name": "Analyze audio",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "ayaYPNfYuQouewTj",
+          "name": "Google Gemini(PaLM) Api account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "3b1e0e34-ad13-4764-9fe8-75831fd9ff8b",
+              "name": "content.parts[0].text",
+              "value": "={{ JSON.parse($json.content.parts[0].text) }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        576,
+        -64
+      ],
+      "id": "158883c8-2924-4609-88a1-3d2295a22111",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "0e9694be-ff06-4d6b-b15e-0cd2c1bc5eb3",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        128
+      ],
+      "id": "a0e6bf03-f233-422a-8b8d-2ac5c56a7a89",
+      "name": "Webhook",
+      "webhookId": "0e9694be-ff06-4d6b-b15e-0cd2c1bc5eb3"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        800,
+        128
+      ],
+      "id": "95575279-6b7a-4618-8fd9-1a4b7d565219",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Analyze audio": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Analyze audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "3d7e6830-cf1d-4779-9bb3-c12f199bb8f5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "918326bd65edfcf039ab6ed0593c1e2f72db2d3947d249ff7f8de3045a340b6c"
+  },
+  "id": "GoE9ezW0_y2DxkDFEIokx",
+  "tags": []
+}
