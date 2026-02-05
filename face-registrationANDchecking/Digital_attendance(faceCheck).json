@@ -1,0 +1,211 @@
+{
+  "name": "Digital_attendance(faceCheck)",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -240,
+        -32
+      ],
+      "id": "2f8a9228-1b7e-4ff6-9942-83b4e2a31971",
+      "name": "Telegram Trigger",
+      "webhookId": "ddd4a5dc-381e-4bda-ba9a-2fe703df1aeb",
+      "credentials": {
+        "telegramApi": {
+          "id": "uoTpYGUtMXjpBCcG",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api-us.faceplusplus.com/facepp/v3/search",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "api_key",
+              "value": "rDDaPY2sw5neXGxrIpEGsIHgvvc25zs8"
+            },
+            {
+              "name": "api_secret",
+              "value": "RMpi4x0u0M0pZBbqAcklkR1mjRXfbyu-"
+            },
+            {
+              "parameterType": "formBinaryData",
+              "name": "image_file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "outer_id",
+              "value": "workers_attendance"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        320,
+        -32
+      ],
+      "id": "a8d61184-0b3d-418c-b7cf-d1e69387d5a6",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "fileId": "={{ $json.message.photo[3].file_id }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        32,
+        -32
+      ],
+      "id": "75c12702-09d0-465c-ba26-53a0ce1c061d",
+      "name": "Get a file",
+      "webhookId": "9e448e52-1fc2-4662-9630-df0f5ad4e758",
+      "credentials": {
+        "telegramApi": {
+          "id": "uoTpYGUtMXjpBCcG",
+          "name": "Telegram account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1p5htgiqdnDlvpeiIvNkP4_mgh-Jf6S39OAA09LtogU8",
+          "mode": "list",
+          "cachedResultName": "Worker_data",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p5htgiqdnDlvpeiIvNkP4_mgh-Jf6S39OAA09LtogU8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Sheet1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1p5htgiqdnDlvpeiIvNkP4_mgh-Jf6S39OAA09LtogU8/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "worker_id",
+              "lookupValue": "={{ $json.results[0].user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        560,
+        -32
+      ],
+      "id": "5a0628a0-63d2-427b-a94e-46a7e315705c",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RF3i0M4uvir532vL",
+          "name": "Google Sheets account 3"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Welcome {{ $json.Name }}!, You have successfully verified.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        -32
+      ],
+      "id": "219a4c71-f38a-4cd4-a2cb-16c3d1dc34b7",
+      "name": "Send a text message",
+      "webhookId": "f7a5c357-35fe-4728-ba20-9fc637649e79",
+      "credentials": {
+        "telegramApi": {
+          "id": "uoTpYGUtMXjpBCcG",
+          "name": "Telegram account 2"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get a file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get a file": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a17579bc-e411-4f15-9a6c-44b12bc9ea80",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "918326bd65edfcf039ab6ed0593c1e2f72db2d3947d249ff7f8de3045a340b6c"
+  },
+  "id": "8iVzRx2tOYXb2Brf",
+  "tags": []
+}
